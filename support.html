@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STEAM Games</title>
+    <link rel="stylesheet" href="bootstrap.min.css">
+    <link rel="stylesheet" type="text/css" href="common/master.css">
+    <link rel="stylesheet" type="text/css" href="miner.css">
+    <link rel="stylesheet" type="text/css" href="theme.css">
+    <script src="fontawesome.js"></script>
+    <script src="js/jquery.min.js"></script>
+    <script src="masterFunc.js"></script>
+</head>
+
+<body onload="loading()">
+    <div class="container-fluid">
+        <header>
+            <div class="row justify-content-center">
+                <img id="banner" src="imgs/Logo.png" class="col-8 col-sm-4 col-md-4 col-lg-2 col-xl-1" alt="Logo" onclick="window.location.href='/'">
+            </div>
+            <div class="row justify-content-center">
+                <p class="text-center subtitle">Trò chơi giáo dục STEAM - Trường Tiểu học Mỹ Đình 2!</p>
+            </div>
+        </header>
+        <nav>
+            <div class="row justify-content-center mb-3">
+                <p class="text-center mr-3"><a href="about.html">Về dự án</a></p>
+                <p class="text-center"><a href="support.html">Hỗ trợ chúng tôi</a></p>
+            </div>
+        </nav>
+        <main>
+            <p>Liên hệ: quangthmd2@gmail.com</p>
+        </main>
+        <footer>
+            <div class="row align-items-center ml-0 mr-0 mb-2">
+                <div class="dropdown languages" style="display: inline-block;">
+                    <button id="changeLanguages" class="btn btn-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Tiếng Việt</button>
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item" onclick="delCookie('lang');setCookie('lang', 'en', 365);location.reload();">English</a>
+                        <a class="dropdown-item" onclick="delCookie('lang');setCookie('lang', 'vi', 10);location.reload();">Tiếng Việt</a>
+                    </div>
+                </div>
+                <a href="" style="color: unset;display: inline-block;" class="ml-2"><i class="fas fa-adjust fa-lg mt-2" onclick="changeTheme();"></i></a>
+            </div>
+            <p id="clearDataPara" style="display: none;" class="mb-1">Bạn muốn bắt đầu lại?<button class="btn btn-primary" id="clearData" onclick="deleteData()">Bấm vào đây</button></p>
+            <p id="statusPara">Bạn muốn xem lịch sử <button class="btn btn-primary" id="clearData" onclick="window.location.href='status.html'">Bấm vào đây</button></p>
+            <script type="text/javascript">
+            if (checkTheme() == "dark") {
+                $(".theme button").addClass("bg-dark text-light")
+                $(".languages button").addClass("bg-dark text-light")
+                $("#clearDataPara").addClass("dark")
+                $("#statusPara").addClass("dark")
+            } else {
+                $(".theme button").addClass("bg-light text-dark")
+                $(".languages button").addClass("bg-light text-dark")
+                $("#clearDataPara").addClass("light")
+                $("#statusPara").addClass("light")
+            }
+            if (checkLanguage() == "en") {
+                document.getElementById('changeLanguages').innerText = 'English';
+                $("#clearDataPara").html("Want to start over?" + '<button class="btn btn-primary" id="clearData" onclick="deleteData()">Click here</button>');
+                $("#statusPara").html("Want to see status?" + '<button class="btn btn-primary" id="clearData" onclick="loadStatus()">Click here</button>');
+            }
+            clearDataButtonShow();
+            </script>
+        </footer>
+    </div>
+    <script type="text/javascript">
+    function loading() {
+        $("header").load("header.html");
+        $("nav").load("nav.html");
+        $("footer").load("footer.html");
+        if (checkTheme() == "dark") {
+            $("body").addClass("dark");
+            $(".subtitle").addClass("dark");
+        } else {
+            $("body").addClass("light");
+            $(".subtitle").addClass("light");
+        }
+        if (checkLanguage() == "en") {
+            $(document).ready(function() {
+                $("html").attr("lang", "en");
+            });
+        }
+    }
+    </script>
+    <script src="js/popper.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+</body>
+
+</html>
