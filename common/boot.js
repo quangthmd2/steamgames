@@ -23,20 +23,37 @@
  */
 'use strict';
 
-function setCookie(cname, cvalue, exdays) {
-    var d = new Date();
-    d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
-    var expires = "expires=" + d.toUTCString();
-    document.cookie = cname + "=" + cvalue + ";" + expires + ";path=/";
+function setLocalStorage(name, value) {
+    localStorage.setItem(name, value);
 }
 
-function delCookie(cname) {
-    var expires = "expires=" + 'Thu, 01 Jan 1970 00:00:00 UTC';
-    document.cookie = cname + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
-    console.log(cname + "=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;");
+function getLocalStorage(name) {
+    return localStorage.getItem(name);
+}
+
+function checkLanguage() {
+    if (getLocalStorage("lang") == "") {
+        setLocalStorage("lang", "vi");
+        return "vi";
+    } else {
+        var lang = getLocalStorage("lang");
+        if (lang == 'en') {
+            return "en";
+        } else {
+            return "vi";
+        }
+        return unknow;
+    }
 }
 
 (function() {
+    // Load style
+    var masterStyle = document.createElement('link');
+    masterStyle.rel = 'stylesheet';
+    masterStyle.type = 'text/css';
+    masterStyle.href = 'common/master.css';
+    document.head.appendChild(masterStyle);
+
     // Application path.
     var appName = location.pathname.match(/\/([-\w]+)(\.html)?$/);
     appName = appName ? appName[1].replace('-', '/') : 'index';
@@ -50,14 +67,11 @@ function delCookie(cname) {
     var lang = param ? param[1].replace(/\+/g, '%20') : null;
     if (window['BlocklyGamesLanguages'].indexOf(lang) != -1) {
         // Save this explicit choice as cookie.
-        delCookie('lang');
-        setCookie('lang', escape(lang), 365);
-        // var exp = (new Date(Date.now() + 2 * 31536000000)).toUTCString();
-        // document.cookie = 'lang=' + escape(lang) + '; expires=' + exp + 'path=/';
+        setLocalStorage("lang", lang);
     } else {
         // Second choice: Language cookie.
-        var cookie = document.cookie.match(/(^|;)\s*lang=([\w\-]+)/);
-        lang = cookie ? unescape(cookie[2]) : null;
+        var cookie = checkLanguage();
+        var lang = cookie;
         if (window['BlocklyGamesLanguages'].indexOf(lang) == -1) {
             // Third choice: The browser's language.
             lang = navigator.language;
@@ -69,8 +83,12 @@ function delCookie(cname) {
     }
     window['BlocklyGamesLang'] = lang;
 
+    // Load functions
+    var funcScript = document.createElement('script');
+    funcScript.src = "masterFunc.js";
+    document.head.appendChild(funcScript);
+
     // Load the chosen language pack.
-    var script = document.createElement('script');
     var debug = false;
     try {
         debug = !!sessionStorage.getItem('debug');
@@ -80,37 +98,46 @@ function delCookie(cname) {
     } catch (e) {
         // Don't even think of throwing an error.
     }
-    script.src = appName + '/generated/' + lang +
+    var scriptSrc = appName + '/generated/' + lang +
         (debug ? '/uncompressed.js' : '/compressed.js');
-    script.type = 'text/javascript';
-    document.head.appendChild(script);
-    // Load script
-    loadScript();
-
-    // Load style
-    var masterStyle = document.createElement('link');
-    masterStyle.rel = 'stylesheet';
-    masterStyle.type = 'text/css';
-    masterStyle.href = 'common/master.css';
-    document.head.appendChild(masterStyle); 
+    includeScript(scriptSrc, function() {
+        setTimeout(() => {
+            // Load JQuery and adding dark theme
+            includeScript("js/jquery.min.js", function() {
+                if (checkTheme() == "dark") {
+                    $("body").addClass("dark")
+                    $(".blocklySvg").addClass("dark")
+                    $("span#title").addClass("dark")
+                    $("span#title a").addClass("dark")
+                    $(".blocklyFlyoutBackground").addClass("dark")
+                    $(".blocklyToolboxDiv").addClass("dark")
+                    $(".blocklyTreeRow .blocklyTreeLabel").addClass("dark")
+                } else {
+                    $("body").addClass("light")
+                    $(".blocklySvg").addClass("light")
+                    $("span#title").addClass("light")
+                    $("span#title a").addClass("light")
+                    $(".blocklyFlyoutBackground").addClass("light")
+                    $(".blocklyToolboxDiv").addClass("light")
+                    $(".blocklyTreeRow .blocklyTreeLabel").addClass("light")
+                }
+            });
+        }, 100);
+    })
 })();
 
-async function loadScript() {
-    var funcScript = document.createElement('script');
-    funcScript.src = "https://dev.misblockly.tk/masterFunc.js";
-    funcScript.async = true;
-    document.head.appendChild(funcScript);
+function includeScript(url, callback) {
+    // Adding the script tag to the head as suggested before
+    var head = document.head;
+    var script = document.createElement('script');
+    script.type = 'text/javascript';
+    script.src = url;
 
-    var jquerryScript = document.createElement('script');
-    jquerryScript.src = "https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js";
-    document.head.appendChild(jquerryScript);
-    let promise = new Promise((res, rej) => {
-        setTimeout(() => res("Now it's done!"), 1000)
-    });
-    await promise;
-    var themeScript = document.createElement('script');
-    themeScript.type = 'text/javascript';
-    themeScript.text = '"dark"==checkTheme()?($("body").addClass("dark"),$(".blocklySvg").addClass("dark"),$("span#title").addClass("dark"),$("span#title a").addClass("dark"),$(".blocklyFlyoutBackground").addClass("dark"),$(".blocklyToolboxDiv").addClass("dark"),$(".blocklyTreeRow .blocklyTreeLabel").addClass("dark")):($("body").addClass("light"),$(".blocklySvg").addClass("light"),$("span#title").addClass("light"),$("span#title a").addClass("light"),$(".blocklyFlyoutBackground").addClass("light"),$(".blocklyToolboxDiv").addClass("light"),$(".blocklyTreeRow .blocklyTreeLabel").addClass("light"));'
-    themeScript.defer = true;
-    document.head.appendChild(themeScript);
+    // Fire the loading
+    head.appendChild(script);
+
+    // Then bind the event to the callback function.
+    // There are several events for cross browser compatibility.
+    script.onreadystatechange = callback;
+    script.onload = callback;
 }
